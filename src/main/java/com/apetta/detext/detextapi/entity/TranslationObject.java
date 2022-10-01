@@ -9,13 +9,13 @@ public class TranslationObject implements Serializable {
     public TranslationObject() { }
 
     public TranslationObject(String country, String locality, String month, String year, String sourceWord,
-                             String tranlatedWord, String sourceLang, String translateLang) {
+                             String translatedWord, String sourceLang, String translateLang) {
         setCountry(country);
         setLocality(locality);
         setMonth(month);
         setYear(year);
         setSourceWord(sourceWord);
-        setTranslatedWord(tranlatedWord);
+        setTranslatedWord(translatedWord);
         setSourceLang(sourceLang);
         setTranslateLang(translateLang);
     }
