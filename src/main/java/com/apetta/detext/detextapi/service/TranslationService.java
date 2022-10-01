@@ -5,10 +5,11 @@ import com.google.firebase.database.*;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 @Service
-public class TranslationStatsService {
+public class TranslationService {
 
     private DatabaseReference ref;
     private static List<TranslationObject> allRecordsList;
@@ -18,26 +19,10 @@ public class TranslationStatsService {
 
     private static long countWordAppearance = -10;
 
-    public TranslationStatsService() {
+    public TranslationService() {
         // As an admin, the app has access to read and write all data, regardless of Security Rules
         ref = FirebaseDatabase.getInstance()
                 .getReference("stats/fromTranslation");
-//        ref.addListenerForSingleValueEvent(new ValueEventListener() {
-//            @Override
-//            public void onDataChange(DataSnapshot dataSnapshot) {
-//                List<TranslationStats> translationStatsList = new ArrayList<>();
-//                for(DataSnapshot snap : dataSnapshot.getChildren()) {
-//                    translationStatsList.add(snap.getValue(TranslationStats.class));
-//                }
-//                translationStatsList.forEach(translationStats -> System.out.println(translationStats.getSourceWord()));
-////				Object document = dataSnapshot.getValue();
-////				System.out.println(document);
-//            }
-//
-//            @Override
-//            public void onCancelled(DatabaseError databaseError) {
-//            }
-//        });
     }
 
     public void getAllRecords() {
@@ -95,13 +80,16 @@ public class TranslationStatsService {
         distinctCountriesList = tempList.stream().distinct().collect(Collectors.toList());
         // for each country I have to get the most searched word
         Map<String, String> mostSearchedWordPerCountry = new HashMap<>();
+        distinctCountriesList.removeAll(Collections.singletonList(null));
         for(int i = 0; i < distinctCountriesList.size(); i++) {
-            List<String> words = new ArrayList<>();
-            for (TranslationObject translationObject : allRecordsList){
-                if(translationObject.getCountry() != null)
-                    if (translationObject.getCountry().equals(distinctCountriesList.get(i))) words.add(translationObject.getSourceWord());
+            if(distinctCountriesList.get(i) != null) {
+                List<String> words = new ArrayList<>();
+                for (TranslationObject translationObject : allRecordsList){
+                    if(translationObject.getCountry() != null)
+                        if (translationObject.getCountry().equals(distinctCountriesList.get(i))) words.add(translationObject.getSourceWord());
+                }
+                mostSearchedWordPerCountry.put(distinctCountriesList.get(i), findMostFrequentWord(words));
             }
-            mostSearchedWordPerCountry.put(distinctCountriesList.get(i), findMostFrequentWord(words));
         }
         return mostSearchedWordPerCountry;
     }
@@ -150,6 +138,21 @@ public class TranslationStatsService {
         allRecordsList.forEach(t -> tempList.add(t.getSourceWord()));
         distinctWordsList = tempList.stream().distinct().collect(Collectors.toList());
         distinctWordsList.forEach(w -> result.put(w, Collections.frequency(tempList, w)));
+        return result;
+    }
+
+    public Map<String, Integer> getTheMostSearchedWord() {
+        Map<String, Integer> tempMap = getDistinctWords();
+        final int[] max = {-1};
+        AtomicReference<String> word = new AtomicReference<>("");
+        tempMap.forEach( (k, v) -> {
+            if(v > max[0]) {
+                max[0] = v;
+                word.set(k);
+            }
+        });
+        Map<String, Integer> result = new HashMap<>();
+        result.put(word.toString(), max[0]);
         return result;
     }
 

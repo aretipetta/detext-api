@@ -38,28 +38,6 @@ public class DetextapiApplication {
 				.setDatabaseUrl("https://detext-app-default-rtdb.firebaseio.com")
 				.build();
 		FirebaseApp firebaseApp = FirebaseApp.initializeApp(options);
-
-		// As an admin, the app has access to read and write all data, regardless of Security Rules
-		DatabaseReference ref = FirebaseDatabase.getInstance()
-				.getReference("stats/fromTranslation");
-		ref.addListenerForSingleValueEvent(new ValueEventListener() {
-			@Override
-			public void onDataChange(DataSnapshot dataSnapshot) {
-				List<TranslationObject> translationObjectList = new ArrayList<>();
-				for(DataSnapshot snap : dataSnapshot.getChildren()) {
-					translationObjectList.add(snap.getValue(TranslationObject.class));
-				}
-				translationObjectList.forEach(translationObject -> System.out.println(translationObject.getSourceWord()));
-//				Object document = dataSnapshot.getValue();
-//				System.out.println(document);
-			}
-
-			@Override
-			public void onCancelled(DatabaseError databaseError) {
-			}
-		});
-
 		SpringApplication.run(DetextapiApplication.class, args);
 	}
-
 }
