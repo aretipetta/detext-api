@@ -21,10 +21,14 @@ public class TranslationController {
     }
 
     @GetMapping
-    public ResponseEntity<List<TranslationObject>> getAllRecords() {
+    public ResponseEntity<Map<String, Object>> getAllRecords() {
         translationService.getAllRecords();
-        List<TranslationObject> response = new ArrayList<>();
-        while(!translationService.isCompleted()) response = translationService.getAllRecordsList();
+        List<TranslationObject> records = new ArrayList<>();
+        while(!translationService.isCompleted()) Thread.onSpinWait();
+        records = translationService.getAllRecordsList();
+        Map<String, Object> response = new HashMap<>();
+        response.put("Size", records.size());
+        response.put("Records", records);
         return ResponseEntity.ok(response);
     }
 
